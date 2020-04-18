@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const  autoIncrement = require('mongoose-auto-increment')
-// var connection = mongoose.createConnection("mongodb+srv://remah:remah654312@cluster0-ytypa.mongodb.net/otp?retryWrites=true&w=majority",{useNewUrlParser:true,useUnifiedTopology:true});
+require('dotenv').config()
+
+const connection = mongoose.createConnection(process.env.db,{useNewUrlParser:true,useUnifiedTopology:true});
  
-// autoIncrement.initialize(connection);
+autoIncrement.initialize(connection);
 const otpSchema = new Schema({
  phone : String,
  code : String,
@@ -13,5 +15,5 @@ const otpSchema = new Schema({
  }
 });
 
-otpSchema.plugin(autoIncrement.plugin, { model: 'otp', field: 'id' });
-module.exports = mongoose.model('otp',otpSchema);
+otpSchema.plugin(autoIncrement.plugin, { model: process.env.otp_model_name, field: 'id' });
+module.exports = mongoose.model(process.env.otp_model_name,otpSchema);

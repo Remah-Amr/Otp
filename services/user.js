@@ -10,6 +10,8 @@ const {validationResult} = require('express-validator');
 const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
 const CodeGenerator = require('node-code-generator');
 const generator = new CodeGenerator();
+require('dotenv').config()
+
 
 module.exports = {
     signUp : 

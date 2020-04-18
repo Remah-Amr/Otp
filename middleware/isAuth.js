@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken')
+require('dotenv').config()
 
 exports.isAuth = (req,res,next)=>{
     const token = req.headers['authorization']
     if(token){
         try{
-            var authData = jwt.verify(token,'remah')
+            var authData = jwt.verify(token,process.env.secret)
             req.user = authData.user
             next()   
         } catch(err){
