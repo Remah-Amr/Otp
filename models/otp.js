@@ -1,19 +1,21 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const  autoIncrement = require('mongoose-auto-increment')
+const csts = require('../constants')
 require('dotenv').config()
 
 const connection = mongoose.createConnection(process.env.db,{useNewUrlParser:true,useUnifiedTopology:true});
  
 autoIncrement.initialize(connection);
 const otpSchema = new Schema({
- phone : String,
- code : String,
+ phone : {type:String,required:true},
+ code : {type:String,required:true},
  confirmed :{
      type : Boolean,
-     default : false
+     default : false,
+     required: true
  }
 });
 
-otpSchema.plugin(autoIncrement.plugin, { model: process.env.otp_model_name, field: 'id' });
-module.exports = mongoose.model(process.env.otp_model_name,otpSchema);
+otpSchema.plugin(autoIncrement.plugin, { model:csts.OTP_MODEL_NAME, field: 'id' });
+module.exports = mongoose.model(csts.OTP_MODEL_NAME,otpSchema);
