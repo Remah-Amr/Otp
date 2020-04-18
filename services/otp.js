@@ -1,23 +1,24 @@
 require('dotenv').config()
 const express = require('express')
-var client = require('twilio')(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
-var CodeGenerator = require('node-code-generator');
-var generator = new CodeGenerator();
-const otp = require('../models/otp')
+const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
+const CodeGenerator = require('node-code-generator');
+const generator = new CodeGenerator();
+const otpModel = require('../models/otp')
 const router = express.Router()
 
 module.exports = {
     sendCode : async (req,res)=>{
         try{
-            const phoneExist = await otp.findOne({phone:req.body.phoneNumber})
+            const phoneExist = await otpModel.findOne({phone:req.body.phoneNumber,confirmed:true})
             if(phoneExist){return res.status(401).json({msg : "already phone exist"})}
-            var code = generator.generateCodes('#+#+', 100)[0];
+            console.log('send')
+            const code = generator.generateCodes('#+#+', 100)[0];
             await client.messages.create({
                 from : 'whatsapp:+14155238886',
                 to:    `whatsapp:${req.body.phoneNumber}`,
                 body: `${code}`,
             })
-           const newOtp = new otp({phone:req.body.phoneNumber,code})
+           const newOtp = new otpModel({phone:req.body.phoneNumber,code})
            await newOtp.save()
            res.status(201).json({msg : "send verification code"})
         } catch(err){
@@ -26,7 +27,7 @@ module.exports = {
     },
     verifyCode : async (req,res)=>{
         try{
-            const phoneVerified = await otp.findOne({phone:req.body.phoneNumber,code:req.body.code})
+            const phoneVerified = await otpModel.findOne({phone:req.body.phoneNumber,code:req.body.code})
             if(phoneVerified){ 
                 phoneVerified.confirmed = true
                 await phoneVerified.save()
@@ -36,6 +37,4 @@ module.exports = {
         } catch(err){
             res.status(500).json({err})
         }
-    
-    }
-}
+}}

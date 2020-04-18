@@ -16,7 +16,7 @@ const userSchema = new Schema({
    },
  phone : {
     type: Schema.Types.ObjectId,
-    ref:process.env.otp_model_name,
+    ref:'otp',
     required:true
  },
  password : {type : String , required: true}

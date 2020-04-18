@@ -2,8 +2,8 @@ const express = require('express')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const {isAuth} = require('../middleware/isAuth')
-const User = require('../models/user') 
-const otp = require('../models/otp')
+const userModel = require('../models/user') 
+const otpModel = require('../models/otp')
 const router = express.Router()
 const {check} = require('express-validator');
 const {validationResult} = require('express-validator');
@@ -11,7 +11,6 @@ const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID,process.env.TWIL
 const CodeGenerator = require('node-code-generator');
 const generator = new CodeGenerator();
 require('dotenv').config()
-
 
 module.exports = {
     signUp : 
@@ -23,11 +22,11 @@ module.exports = {
                 const error = errors.array()[0].msg;
                 return res.status(422).json({error})
             }
-            const phone = await otp.findOne({_id:req.params.phone,confirmed:true})
+            const phone = await otpModel.findOne({_id:req.params.phone,confirmed:true})
             if(!phone){return res.status(401).json({msg : "phone is not verified"})}
-            var salt = bcrypt.genSaltSync(10);
-            var hash = bcrypt.hashSync(req.body.password, salt);
-            const newUser = new User({
+            const salt = bcrypt.genSaltSync(10);
+            const hash = bcrypt.hashSync(req.body.password, salt);
+            const newUser = new userModel({
                 name: {
                     ar : req.body.ar,
                     en : req.body.en
@@ -37,7 +36,7 @@ module.exports = {
             })
             const user = await newUser.save()
             user.password = undefined
-            var token = jwt.sign({user},process.env.secret,{expiresIn : '1h'})
+            const token = jwt.sign({user},process.env.secret,{expiresIn : '1h'})
             res.status(201).json({user,token})
         
         }
@@ -48,9 +47,9 @@ module.exports = {
     
     signIn :async (req,res,next) => {
         try{
-            const phone = await otp.findOne({phone:req.body.phone,confirmed:true})
+            const phone = await otpModel.findOne({phone:req.body.phone,confirmed:true})
             if(!phone){return res.status(401).json({msg : "phone is not verified"})}
-            const user = await User.findOne({phone:phone._id})
+            const user = await userModel.findOne({phone:phone._id})
             if(user){
                 const isMatch = await bcrypt.compare(req.body.password,user.password)
                 if(!isMatch)
@@ -61,7 +60,7 @@ module.exports = {
                 }
                 else{
                     user.password = undefined
-                    var token = jwt.sign({user},process.env.secret,{expiresIn : '1h'})
+                    const token = jwt.sign({user},process.env.secret,{expiresIn : '1h'})
                     res.status(201).json({
                         token,
                         user
@@ -77,26 +76,26 @@ module.exports = {
             res.status(500).json(err)
         }
     },
-    forgetPassword : 
+    forgetPassword :  
     async (req,res) => {
         try{
             const errors = validationResult(req);
-                if(!errors.isEmpty())
-                {
-                    const error = errors.array()[0].msg;
-                    return res.status(422).json({error})
-                }
-            const phone = await otp.findOne({phone:req.body.phone})
-            const user = await User.findOne({phone:phone._id})
+            if(!errors.isEmpty())
+            {
+                const error = errors.array()[0].msg;
+                return res.status(422).json({error})
+            }
+            const phone = await otpModel.findOne({phone:req.body.phone})
+            let user = await userModel.findOne({phone:phone._id})
             const isMatch = await bcrypt.compare(req.body.oldPassword,user.password)
-                    if(!isMatch)
-                    {
-                        return res.status(401).json({
-                            msg: "old Password incorrect"
-                        })
-                    }  
-            var salt = bcrypt.genSaltSync(10);
-            var hash = bcrypt.hashSync(req.body.newPassword, salt);
+            if(!isMatch)
+            {
+                return res.status(401).json({
+                    msg: "old Password incorrect"
+                })
+            }  
+            const salt = bcrypt.genSaltSync(10);
+            const hash = bcrypt.hashSync(req.body.newPassword, salt);
             user.password = hash
             await user.save()
             res.status(201).json({msg : "password changed correctly"})
@@ -107,9 +106,9 @@ module.exports = {
     },
     send : async(req,res) => {
         try{
-            const phoneExist = await otp.findOne({phone:req.body.phone})
+            const phoneExist = await otpModel.findOne({phone:req.body.phone})
             if(phoneExist === undefined){return res.status(401).json({msg : "phone does not exist"})}
-            var newCode = generator.generateCodes('#+#+', 100)[0];
+            const newCode = generator.generateCodes('#+#+', 100)[0];
             await client.messages.create({
                 from : 'whatsapp:+14155238886',
                 to:    `whatsapp:${req.body.phone}`,
@@ -124,7 +123,7 @@ module.exports = {
     }, 
     verify : async (req,res)=>{
         try{
-            const phoneVerified = await otp.findOne({phone:req.body.phone,code:req.body.code})
+            const phoneVerified = await otpModel.findOne({phone:req.body.phone,code:req.body.code})
             if(phoneVerified){ 
                 return res.status(201).json({msg : "phone verified"})
             }
@@ -134,4 +133,4 @@ module.exports = {
         }
         
     }
-}
+} 

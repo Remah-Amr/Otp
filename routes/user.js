@@ -10,7 +10,7 @@ router.post('/signup/:phone',
     check('en','you have to fill name field').not().isEmpty(),
     check('password',"Please enter a password contain At least one uppercase.At least one lower case.At least one special character.At least one number ").matches(
         /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d@$.!%*#?&]/,
-      )
+      ) 
 ],signUp)
 
 router.post('/signin',signIn)
