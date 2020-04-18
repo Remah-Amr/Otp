@@ -9,14 +9,13 @@ require('dotenv').config()
  
 
 const userSchema = new Schema({
- name :{
+ name :{ 
     type:Object,
     i18n : true,
     required: true
    },
  phone : {
-    type: Schema.Types.ObjectId,
-    ref:'otp',
+    type:String,
     required:true
  },
  password : {type : String , required: true}

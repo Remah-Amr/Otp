@@ -22,7 +22,7 @@ module.exports = {
                 const error = errors.array()[0].msg;
                 return res.status(422).json({error})
             }
-            const phone = await otpModel.findOne({_id:req.params.phone,confirmed:true})
+            const phone = await otpModel.findOne({phone:req.body.phone,confirmed:true})
             if(!phone){return res.status(401).json({msg : "phone is not verified"})}
             const salt = bcrypt.genSaltSync(10);
             const hash = bcrypt.hashSync(req.body.password, salt);
@@ -31,7 +31,7 @@ module.exports = {
                     ar : req.body.ar,
                     en : req.body.en
                 },
-                phone: req.params.phone,
+                phone: req.body.phone,
                 password: hash
             })
             const user = await newUser.save()
@@ -49,7 +49,7 @@ module.exports = {
         try{
             const phone = await otpModel.findOne({phone:req.body.phone,confirmed:true})
             if(!phone){return res.status(401).json({msg : "phone is not verified"})}
-            const user = await userModel.findOne({phone:phone._id})
+            const user = await userModel.findOne({phone:req.body.phone})
             if(user){
                 const isMatch = await bcrypt.compare(req.body.password,user.password)
                 if(!isMatch)
@@ -85,8 +85,7 @@ module.exports = {
                 const error = errors.array()[0].msg;
                 return res.status(422).json({error})
             }
-            const phone = await otpModel.findOne({phone:req.body.phone})
-            let user = await userModel.findOne({phone:phone._id})
+            let user = await userModel.findOne({phone:req.body.phone})
             const isMatch = await bcrypt.compare(req.body.oldPassword,user.password)
             if(!isMatch)
             {

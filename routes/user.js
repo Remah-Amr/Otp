@@ -4,7 +4,7 @@ const {check} = require('express-validator');
 const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID,process.env.TWILIO_AUTH_TOKEN);
 const {signUp,signIn,send,verify,forgetPassword} = require('../services/user')
 
-router.post('/signup/:phone',
+router.post('/signup',
 [
     check('ar','you have to fill name field').not().isEmpty(),
     check('en','you have to fill name field').not().isEmpty(),
